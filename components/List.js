@@ -1,6 +1,7 @@
 import React from "react";
 import { Text, StyleSheet, TouchableOpacity, View } from "react-native";
 import firebase from "firebase";
+import { Icon } from "react-native-elements";
 
 class List extends React.Component {
   constructor(props) {
@@ -11,8 +12,8 @@ class List extends React.Component {
   }
 
   componentDidMount() {
-    const { key } = this.props.name.item;
-    console.log(firebase.database);
+    const { index } = this.props.name;
+
     // Initialize Firebase
     const config = {
       apiKey: "AIzaSyCbg_OQnCvePbLtQOiZ6qHX_zu-sPqEaow",
@@ -22,43 +23,52 @@ class List extends React.Component {
       storageBucket: "favorite-list.appspot.com",
       messagingSenderId: "752967633274"
     };
-    //firebase.initializeApp(config);
+
     if (!firebase.apps.length) {
       firebase.initializeApp(config);
     }
 
-    // firebase
-    //   .database()
-    //   .ref("users/")
-    //   .push({
-    //     name: key,
-    //     favorite: null
-    //   })
-    //   .then(data => console.log(data))
-    //   .catch(err => console.log(err));
+    firebase
+      .database()
+      .ref(`users/${index}/favorite`)
+      .on("value", dataSnapShot =>
+        this.setState({
+          show: dataSnapShot.val()
+        })
+      );
+    //console.log(this.props.name.index);
   }
 
   showContent(person) {
-    console.log(person.name.index);
+    const userIndex = person.name.index;
     this.setState({ show: !this.state.show });
 
     firebase
       .database()
-      .ref("users")
+      .ref(`users/${userIndex}`)
       .update({ favorite: this.state.show });
   }
 
   render() {
     return (
-      <View style={{ flexDirection: "row" }}>
-        <Text style={styles.item}>{this.props.name.item.key}</Text>
-        <TouchableOpacity onPress={() => this.showContent(this.props)}>
+      <View
+        style={{
+          flexDirection: "row",
+          borderBottomWidth: 1,
+          borderBottomColor: "#eee"
+        }}
+      >
+        <TouchableOpacity
+          onPress={() => this.showContent(this.props)}
+          style={{ padding: 10, alignItems: "center" }}
+        >
           {this.state.show ? (
-            <Text style={styles.item}>X</Text>
+            <Icon name="heart" type="font-awesome" />
           ) : (
-            <Text style={styles.item}>O</Text>
+            <Icon name="heart-o" type="font-awesome" />
           )}
         </TouchableOpacity>
+        <Text style={styles.item}>{this.props.name.item.key}</Text>
       </View>
     );
   }
@@ -71,10 +81,5 @@ const styles = StyleSheet.create({
     padding: 10,
     fontSize: 18,
     height: 44
-  },
-  item2: {
-    paddingLeft: 10,
-    fontSize: 16,
-    height: 34
   }
 });
